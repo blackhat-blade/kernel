@@ -1,0 +1,32 @@
+#!/bin/mksh
+
+
+
+DIR=${1:-.}
+
+if ! test -e "$DIR/arch/x86/boot/bzImage"; then
+	echo "no bzImage found." >&2;
+	exit 1;
+fi
+
+
+if ! test -e "$DIR/.config"; then
+	echo "no .config found" >&2;
+	exit 2;
+fi
+
+
+. $DIR/.config
+
+
+IMAGEID=linux${CONFIG_LOCALVERSION}
+IMAGENAME=${IMAGEID}.xz.vmlinuz
+CFGNAME=${IMAGEID}.cfg
+
+KERNELVERSION=$(perl -ne '/Linux\/.* (.*) Kernel Configuration/ && print $1' < $DIR/.config)
+KERNELSRC=linux-${KERNELVERSION}.tar.xz
+KERNELSRCPATH=${DIR}/../$KERNELSRC
+
+scp $DIR/arch/x86/boot/bzImage backup.sanemail.de:~/dumpsite/kernel/$IMAGENAME
+scp $DIR/.config               backup.sanemail.de:~/dumpsite/kernel/$CFGNAME
+scp $KERNELSRCPATH             backup.sanemail.de:~/dumpsite/kernel/$KERNELSRC
